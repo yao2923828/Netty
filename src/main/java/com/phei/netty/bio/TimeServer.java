@@ -23,20 +23,20 @@ public class TimeServer {
                 e.printStackTrace();
             }
         }
-        ServerSocket server=null;
+        ServerSocket server = null;
         try {
-            server=new ServerSocket(port);
-            System.out.println("The time server is start in port : "+port);
-            Socket socket=null;
-            while (true){
-                socket=server.accept();
+            server = new ServerSocket(port);
+            System.out.println("The time server is start in port : " + port);
+            Socket socket = null;
+            while (true) {
+                socket = server.accept();
                 new Thread(new TimerServerHandler(socket)).start();
             }
         } finally {
-            if(server !=null){
+            if (server != null) {
                 System.out.println("The time server close");
                 server.close();
-                server=null;
+                server = null;
             }
         }
     }
