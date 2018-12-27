@@ -35,6 +35,7 @@ public class TimeClientHandle implements Runnable{
             socketChannel.configureBlocking(false);
         } catch (IOException e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
 
@@ -75,6 +76,8 @@ public class TimeClientHandle implements Runnable{
         if(socketChannel.connect(new InetSocketAddress(host,port))){
             socketChannel.register(selector, SelectionKey.OP_READ);
             doWrite(socketChannel);
+        }else{
+            socketChannel.register(selector, SelectionKey.OP_CONNECT);
         }
     }
 
@@ -82,14 +85,16 @@ public class TimeClientHandle implements Runnable{
         if(key.isValid()){
             SocketChannel sc= (SocketChannel) key.channel();
             if(key.isConnectable()){
+                System.out.println("client connect");
                 if(sc.finishConnect()){
-                    sc.register(selector,SelectionKey.OP_READ );
+                    sc.register(selector,SelectionKey.OP_READ);
                     doWrite(sc);
                 }else {
                     System.exit(1);
                 }
             }
             if(key.isReadable()){
+                System.out.println("client read");
                 ByteBuffer readBuffer=ByteBuffer.allocate(1024);
                 int readBytes=sc.read(readBuffer);
                 if(readBytes>0){

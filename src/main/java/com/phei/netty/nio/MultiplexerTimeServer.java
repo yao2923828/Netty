@@ -36,11 +36,12 @@ public class MultiplexerTimeServer implements Runnable{
             System.out.println("The time server is start in port :"+port);
         } catch (IOException e) {
             e.printStackTrace();
+            System.exit(1);
         }
 
     }
     public void stop(){
-        this.stop=stop;
+        this.stop=true;
     }
     public void run() {
         while (!stop){
@@ -52,8 +53,24 @@ public class MultiplexerTimeServer implements Runnable{
                 while (it.hasNext()){
                     key=it.next();
                     it.remove();
-                    handleInput(key);
+                    try{
+                        handleInput(key);
+                    }catch (Exception e){
+                        if(key!=null){
+                            key.cancel();
+                            if(key.channel()!=null){
+                                key.channel().close();
+                            }
+                        }
+                    }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        if(selector!=null){
+            try {
+                selector.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -62,13 +79,16 @@ public class MultiplexerTimeServer implements Runnable{
     private void handleInput(SelectionKey key) throws IOException {
         if(key.isValid()){
             if(key.isAcceptable()){
+                System.out.println("server accept");
                 ServerSocketChannel ssc= (ServerSocketChannel) key.channel();
                 SocketChannel sc=ssc.accept();
                 sc.configureBlocking(false);
                 sc.register(selector,SelectionKey.OP_READ );
 
+
             }
             if(key.isReadable()){
+                System.out.println("server read");
                 SocketChannel sc= (SocketChannel) key.channel();
                 ByteBuffer readBuffer=ByteBuffer.allocate(1024);
                 int readBytes=sc.read(readBuffer);
